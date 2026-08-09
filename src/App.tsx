@@ -51,18 +51,18 @@ export default function App() {
   // Unique stores & categories for filter bar
   const storeOptions = useMemo(() => {
     const map = new Map<string, string>();
-    SAMPLE_POS_DATA.forEach((r: any) => {
+    posData.forEach((r: any) => {
       if (r.storeId && r.storeName) map.set(r.storeId, r.storeName);
     });
     return Array.from(map.entries());
-  }, []);
+  }, [posData]);
 
   const categoryOptions = useMemo(() => {
     const set = new Set<string>();
-    SAMPLE_POS_DATA.forEach((r: any) => r.category && set.add(r.category));
-    SAMPLE_INVENTORY_DATA.forEach((r: any) => r.category && set.add(r.category));
+    posData.forEach((r: any) => r.category && set.add(r.category));
+    inventoryData.forEach((r: any) => r.category && set.add(r.category));
     return Array.from(set);
-  }, []);
+  }, [posData, inventoryData]);
 
   const handleDataLoaded = (newPosData: any[], newInventoryData: any[]) => {
     if (newPosData.length > 0) setPosData(newPosData);
@@ -240,6 +240,9 @@ export default function App() {
             storePerformance={storePerformance}
             monthlyData={monthlyData}
             inventoryData={inventoryData}
+            categoryBreakdown={insight?.categoryBreakdown || []}
+            posData={posData}
+            categoryFilter={filters.category}
           />
         )}
 

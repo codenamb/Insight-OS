@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Download, Database } from 'lucide-react';
+import { Search, Download, Database, Tag, Clock } from 'lucide-react';
 import type { ProductPerformance } from '../types';
 
 interface DataExplorerProps {
@@ -55,11 +55,11 @@ export default function DataExplorer({ posData, inventoryData, productPerformanc
     if (activeTab === 'products') {
       filename = 'product_performance_analytics_inr.csv';
       csvData =
-        'ProductId,ProductName,Category,GrossRevenue_INR,UnitsSold,NetProfit_INR,ABCClass,StockStatus,CurrentStock\n' +
+        'ProductId,ProductName,Category,GrossRevenue_INR,UnitsSold,NetProfit_INR,ABCClass,StockStatus,CurrentStock,ExpiryDate,DaysToExpiry,RecommendedDiscount_Pct\n' +
         filteredProducts
           .map(
             (p) =>
-              `"${p.productId}","${p.productName}","${p.category}",${p.totalRevenue},${p.totalQuantity},${p.totalProfit},"${p.abcClass}","${p.stockStatus}",${p.currentStock ?? 0}`
+              `"${p.productId}","${p.productName}","${p.category}",${p.totalRevenue},${p.totalQuantity},${p.totalProfit},"${p.abcClass}","${p.stockStatus}",${p.currentStock ?? 0},"${p.expiryDate || ''}",${p.daysToExpiry ?? ''},${p.recommendedDiscount ?? 0}`
           )
           .join('\n');
     } else if (activeTab === 'pos') {
@@ -75,11 +75,11 @@ export default function DataExplorer({ posData, inventoryData, productPerformanc
     } else {
       filename = 'inventory_stock_levels_inr.csv';
       csvData =
-        'ProductId,ProductName,Category,CurrentStock,ReorderLevel,UnitCost_INR,Supplier\n' +
+        'ProductId,ProductName,Category,CurrentStock,ReorderLevel,UnitCost_INR,Supplier,ExpiryDate\n' +
         filteredInventory
           .map(
             (r) =>
-              `"${r.productId}","${r.productName}","${r.category}",${r.currentStock},${r.reorderLevel},${r.unitCost},"${r.supplier || ''}"`
+              `"${r.productId}","${r.productName}","${r.category}",${r.currentStock},${r.reorderLevel},${r.unitCost},"${r.supplier || ''}","${r.expiryDate || ''}"`
           )
           .join('\n');
     }
@@ -199,7 +199,7 @@ export default function DataExplorer({ posData, inventoryData, productPerformanc
                 <th className="p-3.5">Net Profit (₹)</th>
                 <th className="p-3.5">ABC Class</th>
                 <th className="p-3.5">Stock Status</th>
-                <th className="p-3.5">On-Hand Stock</th>
+                <th className="p-3.5">Expiry / Discount Rec</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 text-slate-300">
@@ -239,7 +239,28 @@ export default function DataExplorer({ posData, inventoryData, productPerformanc
                       {p.stockStatus.replace('_', ' ')}
                     </span>
                   </td>
-                  <td className="p-3.5 font-semibold">{p.currentStock ?? 'N/A'}</td>
+                  <td className="p-3.5">
+                    {p.expiryDate ? (
+                      <div className="space-y-1">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 w-fit ${
+                          p.expiryStatus === 'critical_expiry' 
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
+                            : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                        }`}>
+                          <Clock className="w-3 h-3" />
+                          {p.daysToExpiry}d left ({p.expiryDate})
+                        </span>
+                        {p.recommendedDiscount && (
+                          <span className="px-2 py-0.5 rounded-md bg-[#8cff2e]/20 text-[#8cff2e] text-[10px] font-extrabold flex items-center gap-1 w-fit">
+                            <Tag className="w-3 h-3" />
+                            Apply {p.recommendedDiscount}% Discount
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-slate-500 text-[11px]">No Expiry</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -281,7 +302,7 @@ export default function DataExplorer({ posData, inventoryData, productPerformanc
                 <th className="p-3.5">Category</th>
                 <th className="p-3.5">Current Stock</th>
                 <th className="p-3.5">Reorder Threshold</th>
-                <th className="p-3.5">Unit Cost (₹)</th>
+                <th className="p-3.5">Expiry Date</th>
                 <th className="p-3.5">Supplier</th>
               </tr>
             </thead>
@@ -304,7 +325,15 @@ export default function DataExplorer({ posData, inventoryData, productPerformanc
                     </span>
                   </td>
                   <td className="p-3.5 text-slate-400">{row.reorderLevel} units</td>
-                  <td className="p-3.5 font-semibold text-slate-200">₹{parseFloat(row.unitCost).toLocaleString('en-IN')}</td>
+                  <td className="p-3.5 font-medium">
+                    {row.expiryDate ? (
+                      <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-mono text-[11px] border border-purple-500/30">
+                        {row.expiryDate}
+                      </span>
+                    ) : (
+                      <span className="text-slate-500">N/A</span>
+                    )}
+                  </td>
                   <td className="p-3.5 text-purple-300">{row.supplier || 'N/A'}</td>
                 </tr>
               ))}

@@ -12,7 +12,9 @@ import {
   Layers,
   ArrowUpRight,
   CheckCircle2,
-  X
+  X,
+  Clock,
+  Tag
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -61,6 +63,7 @@ export default function Dashboard({
       `OPERATIONAL ALERTS:\n` +
       `- Out of Stock Items: ${insight.outOfStockCount}\n` +
       `- Low Stock Warnings: ${insight.lowStockCount}\n` +
+      `- Expiring Stock Alerts: ${insight.expiringItemsCount}\n` +
       `- Active Operational Issues: ${insight.problems.length}\n\n` +
       `TOP PERFORMING STORES:\n` +
       storePerformance.slice(0, 3).map(s => `- ${s.storeName}: ₹${s.totalRevenue.toLocaleString('en-IN')} (${s.profitMargin.toFixed(1)}% margin)`).join('\n');
@@ -107,79 +110,98 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* WebStacked KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* WebStacked KPI Grid (5 Cards in 5 Cols or 4 Cols) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {/* KPI 1: Gross Revenue */}
-        <div className="webstacked-card rounded-2xl p-6 relative overflow-hidden group">
+        <div className="webstacked-card rounded-2xl p-5 relative overflow-hidden group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Gross Revenue</span>
-            <div className="w-10 h-10 rounded-xl bg-[#8cff2e]/10 border border-[#8cff2e]/30 flex items-center justify-center text-[#8cff2e]">
-              <DollarSign className="w-5 h-5" />
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Gross Revenue</span>
+            <div className="w-9 h-9 rounded-xl bg-[#8cff2e]/10 border border-[#8cff2e]/30 flex items-center justify-center text-[#8cff2e]">
+              <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl lg:text-3xl font-black text-white font-['Geist']">
+          <div className="mt-3">
+            <h3 className="text-xl lg:text-2xl font-black text-white font-['Geist']">
               ₹{insight.totalRevenue.toLocaleString('en-IN')}
             </h3>
-            <div className="flex items-center gap-1.5 text-xs text-[#8cff2e] font-semibold mt-2">
-              <TrendingUp className="w-4 h-4" />
+            <div className="flex items-center gap-1 text-[11px] text-[#8cff2e] font-semibold mt-1.5">
+              <TrendingUp className="w-3.5 h-3.5" />
               <span>+12.4% vs benchmark</span>
             </div>
           </div>
         </div>
 
         {/* KPI 2: Net Profit & Margin */}
-        <div className="webstacked-card rounded-2xl p-6 relative overflow-hidden group">
+        <div className="webstacked-card rounded-2xl p-5 relative overflow-hidden group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Net Profit</span>
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-              <TrendingUp className="w-5 h-5" />
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Net Profit</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl lg:text-3xl font-black text-white font-['Geist']">
+          <div className="mt-3">
+            <h3 className="text-xl lg:text-2xl font-black text-white font-['Geist']">
               ₹{insight.totalProfit.toLocaleString('en-IN')}
             </h3>
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold mt-2">
+            <div className="flex items-center gap-1 text-[11px] text-emerald-400 font-semibold mt-1.5">
               <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300">
-                {insight.profitMargin.toFixed(1)}% Net Margin
+                {insight.profitMargin.toFixed(1)}% Margin
               </span>
             </div>
           </div>
         </div>
 
         {/* KPI 3: Total Sales Volume */}
-        <div className="webstacked-card rounded-2xl p-6 relative overflow-hidden group">
+        <div className="webstacked-card rounded-2xl p-5 relative overflow-hidden group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Units Sold</span>
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-              <ShoppingBag className="w-5 h-5" />
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Units Sold</span>
+            <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+              <ShoppingBag className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl lg:text-3xl font-black text-white font-['Geist']">
+          <div className="mt-3">
+            <h3 className="text-xl lg:text-2xl font-black text-white font-['Geist']">
               {insight.totalUnitsSold.toLocaleString('en-IN')}
             </h3>
-            <p className="text-xs text-slate-400 mt-2">Across {storePerformance.length} Indian store locations</p>
+            <p className="text-[11px] text-slate-400 mt-1.5">{storePerformance.length} Indian Outlets</p>
           </div>
         </div>
 
         {/* KPI 4: Operational Stockout Risk */}
-        <div className="webstacked-card rounded-2xl p-6 relative overflow-hidden group">
+        <div className="webstacked-card rounded-2xl p-5 relative overflow-hidden group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Stockout Risk</span>
-            <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
-              <ShieldAlert className="w-5 h-5" />
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Stockout Risk</span>
+            <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
+              <ShieldAlert className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl lg:text-3xl font-black text-rose-400 font-['Geist']">
-              {insight.outOfStockCount} <span className="text-xs text-slate-400 font-normal">items out</span>
+          <div className="mt-3">
+            <h3 className="text-xl lg:text-2xl font-black text-rose-400 font-['Geist']">
+              {insight.outOfStockCount} <span className="text-xs text-slate-400 font-normal">out</span>
             </h3>
-            <div className="flex items-center gap-1.5 text-xs text-amber-400 font-semibold mt-2">
+            <div className="flex items-center gap-1 text-[11px] text-amber-400 font-semibold mt-1.5">
               <AlertTriangle className="w-3.5 h-3.5" />
-              <span>{insight.lowStockCount} below reorder level</span>
+              <span>{insight.lowStockCount} below reorder</span>
+            </div>
+          </div>
+        </div>
+
+        {/* NEW KPI 5: Expiry & Discount Opportunity */}
+        <div className="webstacked-card rounded-2xl p-5 relative overflow-hidden group border-purple-500/30">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Expiry Risk</span>
+            <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <h3 className="text-xl lg:text-2xl font-black text-purple-300 font-['Geist']">
+              {insight.expiringItemsCount} <span className="text-xs text-slate-400 font-normal">items near expiry</span>
+            </h3>
+            <div className="flex items-center gap-1 text-[11px] text-[#8cff2e] font-semibold mt-1.5">
+              <Tag className="w-3.5 h-3.5" />
+              <span>Dynamic discount ready</span>
             </div>
           </div>
         </div>
@@ -262,18 +284,37 @@ export default function Dashboard({
               <div
                 key={prob.id}
                 onClick={() => setSelectedAlert(prob)}
-                className="p-4 rounded-2xl bg-[#12141a] hover:bg-[#1a1d26] border border-white/10 transition-all cursor-pointer group hover:border-[#8cff2e]/40 space-y-2"
+                className={`p-4 rounded-2xl bg-[#12141a] hover:bg-[#1a1d26] border transition-all cursor-pointer group space-y-2 ${
+                  prob.type === 'expiry' 
+                    ? 'border-purple-500/40 hover:border-purple-400' 
+                    : 'border-white/10 hover:border-[#8cff2e]/40'
+                }`}
               >
                 <div className="flex items-center justify-between">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                    prob.severity === 'high' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'
+                    prob.type === 'expiry'
+                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                      : prob.severity === 'high' 
+                      ? 'bg-rose-500/20 text-rose-300' 
+                      : 'bg-amber-500/20 text-amber-300'
                   }`}>
-                    {prob.severity} severity
+                    {prob.type === 'expiry' ? 'EXPIRY RISK' : `${prob.severity} severity`}
                   </span>
                   <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-[#8cff2e] transition-colors" />
                 </div>
-                <h4 className="font-bold text-white text-xs leading-snug">{prob.title}</h4>
+                <h4 className="font-bold text-white text-xs leading-snug flex items-center gap-1.5">
+                  {prob.type === 'expiry' && <Clock className="w-3.5 h-3.5 text-purple-400 shrink-0" />}
+                  {prob.title}
+                </h4>
                 <p className="text-[11px] text-slate-400 line-clamp-2">{prob.description}</p>
+
+                {prob.recommendedDiscount && (
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-md w-fit">
+                    <Tag className="w-3 h-3 text-[#8cff2e]" />
+                    <span>Apply {prob.recommendedDiscount}% Discount Recommendation</span>
+                  </div>
+                )}
+
                 {prob.financialImpact && (
                   <span className="inline-block text-[10px] text-[#8cff2e] font-semibold bg-[#8cff2e]/10 px-2 py-0.5 rounded-md">
                     {prob.financialImpact}
@@ -299,11 +340,18 @@ export default function Dashboard({
 
             <div className="space-y-2">
               <span className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase ${
-                selectedAlert.severity === 'high' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'
+                selectedAlert.type === 'expiry'
+                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                  : selectedAlert.severity === 'high' 
+                  ? 'bg-rose-500/20 text-rose-300' 
+                  : 'bg-amber-500/20 text-amber-300'
               }`}>
-                {selectedAlert.severity} Severity Alert
+                {selectedAlert.type === 'expiry' ? 'Perishable Expiry Risk Alert' : `${selectedAlert.severity} Severity Alert`}
               </span>
-              <h3 className="text-xl font-bold text-white">{selectedAlert.title}</h3>
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                {selectedAlert.type === 'expiry' && <Clock className="w-5 h-5 text-purple-400" />}
+                {selectedAlert.title}
+              </h3>
             </div>
 
             <div className="space-y-3 bg-[#08090c] p-4 rounded-2xl border border-white/10 text-xs">
@@ -315,10 +363,22 @@ export default function Dashboard({
               )}
             </div>
 
+            {selectedAlert.recommendedDiscount && (
+              <div className="p-3.5 rounded-2xl bg-purple-500/15 border border-purple-500/30 text-xs text-purple-200 flex items-center justify-between">
+                <div className="flex items-center gap-2 font-bold">
+                  <Tag className="w-4 h-4 text-[#8cff2e]" />
+                  <span>Dynamic Clearance Discount:</span>
+                </div>
+                <span className="px-3 py-1 rounded-xl bg-[#8cff2e] text-black font-extrabold text-xs">
+                  {selectedAlert.recommendedDiscount}% OFF
+                </span>
+              </div>
+            )}
+
             {selectedAlert.recommendation && (
               <div className="space-y-2 text-xs">
                 <h4 className="font-bold text-white flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#8cff2e]" /> AI Recommendation
+                  <CheckCircle2 className="w-4 h-4 text-[#8cff2e]" /> AI Strategy & Recommendation
                 </h4>
                 <p className="text-slate-300 bg-[#12141a] p-3 rounded-xl border border-white/10">{selectedAlert.recommendation}</p>
               </div>

@@ -21,6 +21,7 @@ export interface InventoryData {
   unitCost: number;
   supplier?: string;
   lastRestocked?: string;
+  expiryDate?: string;
 }
 
 export interface StorePerformance {
@@ -51,8 +52,12 @@ export interface ProductPerformance {
   currentStock?: number;
   reorderLevel?: number;
   daysOfSupply?: number;
+  expiryDate?: string;
+  daysToExpiry?: number;
+  recommendedDiscount?: number; // e.g. 20 for 20%, 40 for 40%
   abcClass: 'A' | 'B' | 'C'; // A = Top 80% revenue, B = Next 15%, C = Bottom 5%
   stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock';
+  expiryStatus?: 'fresh' | 'expiring_soon' | 'critical_expiry';
 }
 
 export interface CategoryPerformance {
@@ -64,7 +69,7 @@ export interface CategoryPerformance {
   shareOfRevenue: number;
 }
 
-export type ProblemType = 'inventory' | 'sales' | 'store' | 'profitability' | 'opportunity';
+export type ProblemType = 'inventory' | 'sales' | 'store' | 'profitability' | 'opportunity' | 'expiry';
 export type SeverityLevel = 'high' | 'medium' | 'low';
 
 export interface BusinessProblem {
@@ -79,6 +84,7 @@ export interface BusinessProblem {
   recommendation: string;
   actionSteps?: string[];
   timestamp: string;
+  recommendedDiscount?: number;
 }
 
 export interface BusinessInsight {
@@ -89,6 +95,7 @@ export interface BusinessInsight {
   totalUnitsSold: number;
   outOfStockCount: number;
   lowStockCount: number;
+  expiringItemsCount: number;
   problems: BusinessProblem[];
   opportunities: BusinessProblem[];
   trends: {

@@ -21,9 +21,12 @@ interface ChartsProps {
   storePerformance: StorePerformance[];
   monthlyData: any[];
   inventoryData?: any[];
+  categoryBreakdown?: any[];
+  posData?: any[];
+  categoryFilter?: string;
 }
 
-const PALETTE = ['#8cff2e', '#00f0ff', '#a855f7', '#f59e0b', '#ec4899', '#3b82f6'];
+const PALETTE = ['#8cff2e', '#00f0ff', '#a855f7', '#f59e0b', '#ec4899', '#3b82f6', '#14b8a6', '#f43f5e'];
 
 interface StockDeficitData {
   name: string;
@@ -42,7 +45,14 @@ function formatINRCurrencyTick(val: number): string {
   return `₹${val}`;
 }
 
-export default function Charts({ storePerformance, monthlyData, inventoryData = [] }: ChartsProps) {
+export default function Charts({ 
+  storePerformance, 
+  monthlyData, 
+  inventoryData = [], 
+  categoryBreakdown = [], 
+  posData = [],
+  categoryFilter = 'all'
+}: ChartsProps) {
   const [chartView, setChartView] = useState<'all' | 'trend' | 'stores' | 'category' | 'inventory'>('all');
 
   const storeChartData = storePerformance.map(store => ({
@@ -53,22 +63,46 @@ export default function Charts({ storePerformance, monthlyData, inventoryData = 
     margin: parseFloat(store.profitMargin.toFixed(1)),
   }));
 
-  const categoryDataMap = new Map<string, number>();
-  storePerformance.forEach(s => {
-    const cat = s.topCategory || 'General';
-    categoryDataMap.set(cat, (categoryDataMap.get(cat) || 0) + s.totalRevenue);
-  });
-  const categoryPieData = Array.from(categoryDataMap.entries()).map(([name, value]) => ({
-    name,
-    value: Math.round(value),
-  }));
+  // Build accurate category revenue pie data from categoryBreakdown or posData
+  let categoryPieData: { name: string; value: number }[] = [];
 
-  // Inventory deficit chart data (Current stock vs Reorder level)
-  const filteredLowStock = inventoryData
+  if (categoryBreakdown && categoryBreakdown.length > 0) {
+    categoryPieData = categoryBreakdown.map(c => ({
+      name: c.category,
+      value: Math.round(c.totalRevenue),
+    }));
+  } else if (posData && posData.length > 0) {
+    const catMap = new Map<string, number>();
+    posData.forEach((row: any) => {
+      const cat = row.category || 'General';
+      const rev = parseFloat(row.revenue) || 0;
+      catMap.set(cat, (catMap.get(cat) || 0) + rev);
+    });
+    categoryPieData = Array.from(catMap.entries())
+      .map(([name, value]) => ({ name, value: Math.round(value) }))
+      .sort((a, b) => b.value - a.value);
+  } else {
+    const categoryDataMap = new Map<string, number>();
+    storePerformance.forEach(s => {
+      const cat = s.topCategory || 'General';
+      categoryDataMap.set(cat, (categoryDataMap.get(cat) || 0) + s.totalRevenue);
+    });
+    categoryPieData = Array.from(categoryDataMap.entries()).map(([name, value]) => ({
+      name,
+      value: Math.round(value),
+    }));
+  }
+
+  // Filter inventory data by category if category filter is active
+  const categoryFilteredInventory = (categoryFilter && categoryFilter !== 'all')
+    ? inventoryData.filter(item => item.category && item.category.toLowerCase() === categoryFilter.toLowerCase())
+    : inventoryData;
+
+  // Inventory deficit chart data (ALL items where stock <= reorder level)
+  const filteredLowStock = categoryFilteredInventory
     .filter(item => (parseFloat(item.currentStock) || 0) <= (parseFloat(item.reorderLevel) || 0))
-    .slice(0, 8)
     .map(item => ({
-      name: item.productName ? item.productName.slice(0, 15) + '...' : item.productId,
+      name: item.productName || item.productId || 'Unknown Item',
       stock: parseFloat(item.currentStock) || 0,
       reorder: parseFloat(item.reorderLevel) || 0,
       deficit: Math.max(0, (parseFloat(item.reorderLevel) || 0) - (parseFloat(item.currentStock) || 0)),
@@ -76,7 +110,7 @@ export default function Charts({ storePerformance, monthlyData, inventoryData = 
 
   const lowStockItemsData: StockDeficitData[] = filteredLowStock.length > 0 
     ? filteredLowStock 
-    : [{ name: 'All Stocked', stock: 100, reorder: 50, deficit: 0 }];
+    : [{ name: 'All Items Fully Stocked', stock: 100, reorder: 50, deficit: 0 }];
 
   const isDailyView = monthlyData.length > 0 && monthlyData[0].month.includes('-');
 
@@ -221,17 +255,32 @@ export default function Charts({ storePerformance, monthlyData, inventoryData = 
         {/* 4. Stock Deficit vs Threshold Chart */}
         {(chartView === 'all' || chartView === 'inventory') && (
           <div className="webstacked-card rounded-3xl p-6 lg:col-span-2 space-y-4">
-            <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-amber-400" /> Inventory Stock Deficit (Below Reorder Point)
-              </h3>
-              <p className="text-xs text-slate-400">Current on-hand inventory vs minimum required stock threshold</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-amber-400" /> Inventory Stock Deficit (Below Reorder Point)
+                </h3>
+                <p className="text-xs text-slate-400">Current on-hand inventory vs minimum required stock threshold</p>
+              </div>
+              {categoryFilter !== 'all' && (
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                  Category: {categoryFilter}
+                </span>
+              )}
             </div>
 
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={lowStockItemsData}>
+            <ResponsiveContainer width="100%" height={lowStockItemsData.length > 6 ? 340 : 280}>
+              <BarChart data={lowStockItemsData} margin={{ top: 10, right: 20, left: 0, bottom: lowStockItemsData.length > 6 ? 45 : 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#94a3b8" 
+                  fontSize={10} 
+                  angle={lowStockItemsData.length > 6 ? -25 : 0} 
+                  textAnchor={lowStockItemsData.length > 6 ? "end" : "middle"} 
+                  interval={0}
+                  tickFormatter={(val: string) => val.length > 18 ? val.slice(0, 18) + '...' : val}
+                />
                 <YAxis stroke="#94a3b8" fontSize={11} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ color: '#cbd5e1', fontSize: '12px' }} />

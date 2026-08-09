@@ -15,6 +15,9 @@ const CITY_COORDS: Record<string, [number, number]> = {
   Hyderabad: [17.4435, 78.3772],
   Chennai: [13.0604, 80.2642],
   Kolkata: [22.5726, 88.3639],
+  Kochi: [9.9658, 76.2422],
+  Ahmedabad: [23.0304, 72.5108],
+  Pune: [18.5362, 73.8938],
 };
 
 export default function Heatmap({ storePerformance }: HeatmapProps) {
@@ -26,9 +29,16 @@ export default function Heatmap({ storePerformance }: HeatmapProps) {
     let lng = store.longitude;
 
     if (lat === undefined || lng === undefined) {
-      const keys = Object.keys(CITY_COORDS);
-      const fallbackKey = keys[idx % keys.length];
-      [lat, lng] = CITY_COORDS[fallbackKey];
+      const cityKey = Object.keys(CITY_COORDS).find(c => 
+        store.storeName.toLowerCase().includes(c.toLowerCase())
+      );
+      if (cityKey) {
+        [lat, lng] = CITY_COORDS[cityKey];
+      } else {
+        const keys = Object.keys(CITY_COORDS);
+        const fallbackKey = keys[idx % keys.length];
+        [lat, lng] = CITY_COORDS[fallbackKey];
+      }
     }
 
     return {
