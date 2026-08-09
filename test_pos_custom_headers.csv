@@ -1,0 +1,9 @@
+Transaction Date,Shop Location,Item Code,Item Description,Department,Qty Sold,Sales Amount,Cost Price,Store Lat,Store Lng
+2026-08-01,Mumbai Flagship Store,SKU-901,Wireless Noise-Canceling Headphones,Electronics,12,35988,1650.00,18.9696,72.8193
+2026-08-02,Mumbai Flagship Store,SKU-902,4K Smart TV 55 inch,Electronics,5,224995,25000.00,18.9696,72.8193
+2026-08-03,Bengaluru Tech Outlet,SKU-903,Premium Leather Jacket,Apparel,7,27993,2200.00,12.9716,77.5946
+2026-08-04,Bengaluru Tech Outlet,SKU-904,Pro Running Shoes,Apparel,15,37485,1200.00,12.9716,77.5946
+2026-08-05,Delhi CP Retail,SKU-905,Smart Espresso Coffee Machine,Appliances,8,39992,2800.00,28.6315,77.2167
+2026-08-06,Delhi CP Retail,SKU-906,Air Purifier Pro,Appliances,10,49990,2600.00,28.6315,77.2167
+2026-08-07,Hyderabad Hitech Mall,SKU-907,Mechanical RGB Keyboard,Electronics,20,55996,1300.00,17.4435,78.3772
+2026-08-08,Hyderabad Hitech Mall,SKU-908,Ergonomic Gaming Mouse,Electronics,30,26970,450.00,17.4435,78.3772
