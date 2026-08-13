@@ -122,7 +122,4 @@ You can upload custom datasets in the **Upload CSV** section. If your headers do
 * **Reorder Level** (Required): Minimum threshold triggers reorder flags.
 * **Unit Cost** (Required): Cost price per unit for profit calculations.
 
----
 
-## ⚖️ License
-This project is licensed under the MIT License.
